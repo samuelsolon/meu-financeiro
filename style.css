@@ -530,6 +530,7 @@ body.modo-mobile .conteudo-principal { padding: 8px; border-radius: 12px; width:
 body.modo-mobile .sub-abas-container { flex-wrap: wrap; }
 body.modo-mobile .btn-sub-aba { font-size: 11px; padding: 6px 2px; }
 body.modo-mobile .grid-home { grid-template-columns: 1fr; width: 100%; gap: 10px; height: auto !important; overflow: visible !important; }
+body.modo-mobile, body.modo-mobile .aba, body.modo-mobile .conteudo-principal { height: auto !important; overflow-y: auto !important; }
 body.modo-mobile .coluna-esquerda, body.modo-mobile .coluna-direita, body.modo-mobile .quadrante { width: 100%; height: auto !important; overflow: visible !important; padding: 8px; gap: 8px; }
 body.modo-mobile .analise-resumo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; width: 100%; }
 body.modo-mobile .graficos-triplo-container { grid-template-columns: 1fr; gap: 10px; width: 100%; }
