@@ -1403,7 +1403,22 @@ function renderizarDespesas() {
         total += despesa.valor;
         let valFormat = despesa.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         let tipoTexto = despesa.tipo === 'FixaAte' ? 'Fixa Até' : (despesa.tipo === 'Variável' ? 'Variável' : 'Fixa');
-        let rotuloDetalhe = despesa.tipo === 'FixaAte' && despesa.intervaloCompleto ? `${despesa.totalMesesContrato} meses` : "Recorrente";
+        
+        let rotuloDetalhe = "Fixo";
+        if (despesa.tipo === 'FixaAte' && despesa.intervaloCompleto) {
+            rotuloDetalhe = `${despesa.intervaloCompleto.inicio.mesNome}/${despesa.intervaloCompleto.inicio.ano} a ${despesa.intervaloCompleto.fim.mesNome}/${despesa.intervaloCompleto.fim.ano}`;
+        } else if (despesa.tipo === 'Variável' && despesa.mesesPorAno) {
+            let mesesAtivos = [];
+            Object.keys(despesa.mesesPorAno).forEach(ano => {
+                (despesa.mesesPorAno[ano] || []).forEach(m => mesesAtivos.push(`${m}/${ano}`));
+            });
+            if (mesesAtivos.length > 0) {
+                let primeiro = mesesAtivos[0];
+                rotuloDetalhe = mesesAtivos.length > 1 ? `${primeiro} (+${mesesAtivos.length - 1})` : primeiro;
+            } else {
+                rotuloDetalhe = "Variável";
+            }
+        }
 
         const li = document.createElement('li');
         li.innerHTML = `
@@ -1481,6 +1496,7 @@ window.adicionarItem = async function() {
     t.value = ''; await salvarNaNuvem();
 };
 
+// Ativar login ao pressionar Enter na tela de login
 document.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
         const telaLogin = document.getElementById("tela-login");
