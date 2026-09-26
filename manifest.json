@@ -1,7 +1,7 @@
 {
   "name": "Meu Financeiro",
   "short_name": "Financeiro",
-  "start_url": "/sistema-financeiro/index.html",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#001f3f",
   "theme_color": "#001f3f",
