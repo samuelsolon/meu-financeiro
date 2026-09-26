@@ -1396,10 +1396,19 @@ window.atualizarAnaliseMes = function() {
     else { badge.innerText = "SAUDÁVEL"; badge.style.backgroundColor = "#28a745"; txtDesc.innerText = "Balanço positivo"; }
 };
 
-let mostrandoTodasReceitasFlag = false;
+let modoFiltroReceitasAtivo = false;
+let mesFiltroAtivo = '';
+let anoFiltroAtivo = '';
+
+window.aplicarFiltroReceitas = function() {
+    modoFiltroReceitasAtivo = true;
+    mesFiltroAtivo = document.getElementById('filtroMesReceita').value;
+    anoFiltroAtivo = document.getElementById('filtroAnoReceita').value;
+    renderizarReceitas();
+};
 
 window.mostrarTodasReceitas = function() {
-    mostrandoTodasReceitasFlag = true;
+    modoFiltroReceitasAtivo = false;
     renderizarReceitas();
 };
 
@@ -1409,9 +1418,6 @@ function renderizarReceitas() {
     if(!listaHtml) return;
     listaHtml.innerHTML = '';
     
-    const mesFiltro = document.getElementById('filtroMesReceita')?.value || mesesOrdem[new Date().getMonth()];
-    const anoFiltro = document.getElementById('filtroAnoReceita')?.value || new Date().getFullYear().toString();
-
     let totalPeriodo = 0;
     let receitasFiltradas = [];
 
@@ -1423,20 +1429,19 @@ function renderizarReceitas() {
 
     dadosLocais.receitas.forEach((receita, index) => {
         let tipoR = receita.tipo || 'Fixa';
-        let atendeFiltro = false;
+        let atendeFiltro = true; // Por padrão, se não clicou em filtrar, mostra tudo
 
-        if (mostrandoTodasReceitasFlag) {
-            atendeFiltro = true;
-        } else {
+        if (modoFiltroReceitasAtivo) {
+            atendeFiltro = false;
             if (tipoR === 'Fixa') {
                 atendeFiltro = true;
             } else if (tipoR === 'FixaAte' && receita.intervaloCompleto) {
                 let inicioAbs = receita.intervaloCompleto.inicio.ano * 12 + receita.intervaloCompleto.inicio.mesIndex;
                 let fimAbs = receita.intervaloCompleto.fim.ano * 12 + receita.intervaloCompleto.fim.mesIndex;
-                let mesAtualAbs = parseInt(anoFiltro) * 12 + mesesOrdem.indexOf(mesFiltro);
+                let mesAtualAbs = parseInt(anoFiltroAtivo) * 12 + mesesOrdem.indexOf(mesFiltroAtivo);
                 if (mesAtualAbs >= inicioAbs && mesAtualAbs <= fimAbs) atendeFiltro = true;
             } else if (tipoR === 'Extra' && receita.mesesPorAno) {
-                if ((receita.mesesPorAno[anoFiltro] || []).includes(mesFiltro)) atendeFiltro = true;
+                if ((receita.mesesPorAno[anoFiltroAtivo] || []).includes(mesFiltroAtivo)) atendeFiltro = true;
             }
         }
 
@@ -1487,7 +1492,6 @@ function renderizarReceitas() {
     });
 
     dashValor.innerText = totalPeriodo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    mostrandoTodasReceitasFlag = false; // Reseta a flag após renderizar
 }
 
 function renderizarDespesas() {
