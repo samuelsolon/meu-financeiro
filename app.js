@@ -1464,3 +1464,17 @@ window.adicionarItem = async function() {
     dadosLocais.itens.push(t.value.trim());
     t.value = ''; await salvarNaNuvem();
 };
+
+// Ativar login ao pressionar Enter na tela de login
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        const telaLogin = document.getElementById("tela-login");
+        if (telaLogin && window.getComputedStyle(telaLogin).display !== "none") {
+            event.preventDefault();
+            const btnEntrar = document.querySelector("#tela-login button");
+            if (btnEntrar) {
+                btnEntrar.click();
+            }
+        }
+    }
+});
