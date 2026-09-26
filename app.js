@@ -1481,7 +1481,6 @@ window.adicionarItem = async function() {
     t.value = ''; await salvarNaNuvem();
 };
 
-// Ativar login ao pressionar Enter na tela de login
 document.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
         const telaLogin = document.getElementById("tela-login");
