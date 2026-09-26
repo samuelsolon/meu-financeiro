@@ -161,6 +161,7 @@ window.salvarFiltroPeriodo = function() {
     localStorage.setItem('mesSelecionadoSolon', document.getElementById('filtroMes').value);
     localStorage.setItem('anoSelecionadoSolon', document.getElementById('filtroAno').value);
     atualizarAnaliseMes();
+    renderizarReceitas();
 };
 
 window.toggleListaAnos = function(event, idContainer) {
@@ -759,7 +760,7 @@ window.salvarConfiguracoes = async function() {
 
     localStorage.setItem('temaSolon', selTema);
     localStorage.setItem('fonteSolon', selFonte);
-    aplicarTemaVisual(temaSalvo);
+    aplicarTemaVisual(selTema);
     document.body.style.fontFamily = selFonte;
 
     if (currentUserUid) {
@@ -1159,6 +1160,8 @@ window.mudarAba = function(nomeAba) {
     if(nomeAba === 'inicio') {
         if (document.getElementById('btnSubMensal').classList.contains('ativo')) atualizarAnaliseMes();
         else zerarPainelLateralAnual();
+    } else if(nomeAba === 'receitas') {
+        renderizarReceitas();
     }
 };
 
@@ -1400,53 +1403,94 @@ window.atualizarAnaliseMes = function() {
     else { badge.innerText = "SAUDÁVEL"; badge.style.backgroundColor = "#28a745"; badge.style.color = "white"; txtDesc.innerText = "Balanço positivo"; }
 };
 
+window.salvarFiltroReceita = function() {
+    localStorage.setItem('mesSelecionadoReceitaSolon', document.getElementById('filtroMesReceita').value);
+    localStorage.setItem('anoSelecionadoReceitaSolon', document.getElementById('filtroAnoReceita').value);
+    renderizarReceitas();
+};
+
 function renderizarReceitas() {
     const listaHtml = document.getElementById('lista-receitas-html');
     const dashValor = document.getElementById('dash-valor-receita');
     if(!listaHtml) return;
     listaHtml.innerHTML = '';
-    let total = 0;
+    let totalFiltrado = 0;
+
+    let elMesFiltro = document.getElementById('filtroMesReceita');
+    let elAnoFiltro = document.getElementById('filtroAnoReceita');
+    
+    const mesFiltro = elMesFiltro ? elMesFiltro.value : mesesOrdem[new Date().getMonth()];
+    const anoFiltro = elAnoFiltro ? elAnoFiltro.value : new Date().getFullYear().toString();
 
     if (!dadosLocais.receitas || dadosLocais.receitas.length === 0) {
         listaHtml.innerHTML = '<li style="color: #777; justify-content: center;">Nenhuma receita adicionada ainda.</li>';
         dashValor.innerText = "R$ 0,00"; return;
     }
 
+    let receitasFiltradasParaMostrar = [];
+
     dadosLocais.receitas.forEach(function(receita, index) {
-        total += receita.valor;
-        let valFormat = receita.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        let tipoTexto = receita.tipo === 'FixaAte' ? 'Fixa Até' : (receita.tipo === 'Extra' ? 'Receita Extra' : 'Fixa');
-        
-        let rotuloDetalhe = "Fixo";
-        if (receita.tipo === 'FixaAte' && receita.intervaloCompleto) {
-            rotuloDetalhe = `${receita.intervaloCompleto.inicio.mesNome}/${receita.intervaloCompleto.inicio.ano} a ${receita.intervaloCompleto.fim.mesNome}/${receita.intervaloCompleto.fim.ano}`;
-        } else if (receita.tipo === 'Extra' && receita.mesesPorAno) {
-            let mesesAtivos = [];
-            Object.keys(receita.mesesPorAno).forEach(ano => {
-                (receita.mesesPorAno[ano] || []).forEach(m => mesesAtivos.push(`${m}/${ano}`));
-            });
-            if (mesesAtivos.length > 0) {
-                let primeiro = mesesAtivos[0];
-                rotuloDetalhe = mesesAtivos.length > 1 ? `${primeiro} (+${mesesAtivos.length - 1})` : primeiro;
-            } else {
-                rotuloDetalhe = "Receita Extra";
-            }
+        let tipoR = receita.tipo || 'Fixa';
+        let pertenceAoFiltro = false;
+
+        if (tipoR === 'Fixa') {
+            pertenceAoFiltro = true;
+        } else if (tipoR === 'FixaAte' && receita.intervaloCompleto) {
+            let inicioAbs = receita.intervaloCompleto.inicio.ano * 12 + receita.intervaloCompleto.inicio.mesIndex;
+            let fimAbs = receita.intervaloCompleto.fim.ano * 12 + receita.intervaloCompleto.fim.mesIndex;
+            let filtroAbs = parseInt(anoFiltro) * 12 + mesesOrdem.indexOf(mesFiltro);
+            if (filtroAbs >= inicioAbs && filtroAbs <= fimAbs) pertenceAoFiltro = true;
+        } else if (tipoR === 'Extra' && receita.mesesPorAno) {
+            if ((receita.mesesPorAno[anoFiltro] || []).includes(mesFiltro)) pertenceAoFiltro = true;
         }
 
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <div class="info-financa">
-                <span class="nome">${receita.nome} (${tipoTexto})</span>
-                <span class="detalhes">${rotuloDetalhe}</span>
-                <span class="valor-receita">${valFormat}</span>
-            </div>
-            <div class="botoes-acao">
-                <button class="btn-editar" onclick="abrirModalEditarReceita(${index})">✏️</button>
-                <button class="btn-lixeira" onclick="solicitarRemocaoReceita(${index})">🗑️</button>
-            </div>`;
-        listaHtml.appendChild(li);
+        if (pertenceAoFiltro) {
+            receitasFiltradasParaMostrar.push({ itemObj: receita, indexOriginal: index });
+            totalFiltrado += receita.valor;
+        }
     });
-    dashValor.innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    if (receitasFiltradasParaMostrar.length === 0) {
+        listaHtml.innerHTML = `<li style="color: #777; justify-content: center; font-size: 13px;">Nenhuma receita encontrada para ${mesFiltro}/${anoFiltro}.</li>`;
+    } else {
+        receitasFiltradasParaMostrar.forEach(function(recMap) {
+            let receita = recMap.itemObj;
+            let index = recMap.indexOriginal;
+            
+            let valFormat = receita.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            let tipoTexto = receita.tipo === 'FixaAte' ? 'Fixa Até' : (receita.tipo === 'Extra' ? 'Receita Extra' : 'Fixa');
+            
+            let rotuloDetalhe = "Fixo";
+            if (receita.tipo === 'FixaAte' && receita.intervaloCompleto) {
+                rotuloDetalhe = `${receita.intervaloCompleto.inicio.mesNome}/${receita.intervaloCompleto.inicio.ano} a ${receita.intervaloCompleto.fim.mesNome}/${receita.intervaloCompleto.fim.ano}`;
+            } else if (receita.tipo === 'Extra' && receita.mesesPorAno) {
+                let mesesAtivos = [];
+                Object.keys(receita.mesesPorAno).forEach(ano => {
+                    (receita.mesesPorAno[ano] || []).forEach(m => mesesAtivos.push(`${m}/${ano}`));
+                });
+                if (mesesAtivos.length > 0) {
+                    let primeiro = mesesAtivos[0];
+                    rotuloDetalhe = mesesAtivos.length > 1 ? `${primeiro} (+${mesesAtivos.length - 1})` : primeiro;
+                } else {
+                    rotuloDetalhe = "Receita Extra";
+                }
+            }
+
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <div class="info-financa">
+                    <span class="nome">${receita.nome} (${tipoTexto})</span>
+                    <span class="detalhes">${rotuloDetalhe}</span>
+                    <span class="valor-receita">${valFormat}</span>
+                </div>
+                <div class="botoes-acao">
+                    <button class="btn-editar" onclick="abrirModalEditarReceita(${index})">✏️</button>
+                    <button class="btn-lixeira" onclick="solicitarRemocaoReceita(${index})">🗑️</button>
+                </div>`;
+            listaHtml.appendChild(li);
+        });
+    }
+    dashValor.innerText = totalFiltrado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 function renderizarDespesas() {
