@@ -981,12 +981,28 @@ window.recuperarSenha = function() {
 };
 
 window.fazerLogout = function() {
-    signOut(auth).then(() => {
-        if (unsubscribeFirestore) unsubscribeFirestore();
-        currentUserUid = null; dadosLocais = { itens: [], receitas: [], despesas: [], economia: [] };
-        document.getElementById('emailLogin').value = ''; document.getElementById('senhaLogin').value = '';
-        trocarPainelAuth('login'); 
-    });
+    const modal = document.getElementById('modalConfirmarLogout');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+};
+
+window.acaoConfirmarLogout = function(sair) {
+    const modal = document.getElementById('modalConfirmarLogout');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+
+    if (sair) {
+        signOut(auth).then(() => {
+            if (unsubscribeFirestore) unsubscribeFirestore();
+            currentUserUid = null; 
+            dadosLocais = { itens: [], receitas: [], despesas: [], economia: [] };
+            document.getElementById('emailLogin').value = ''; 
+            document.getElementById('senhaLogin').value = '';
+            trocarPainelAuth('login'); 
+        });
+    }
 };
 
 window.abrirModalNotificacoes = function() { document.getElementById('modalNotificacoes').style.display = 'flex'; };

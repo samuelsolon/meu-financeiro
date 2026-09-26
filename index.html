@@ -650,5 +650,18 @@
 
     <!-- Vincula o arquivo JavaScript externo -->
     <script type="module" src="app.js"></script>
+
+<!-- Modal Personalizado de Confirmação de Logout -->
+<div id="modalConfirmarLogout" class="modal" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
+    <div class="modal-conteudo" style="background: #fff; padding: 25px; border-radius: 12px; width: 320px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <h3 style="margin-bottom: 15px; color: #333;">Encerrar Sessão</h3>
+        <p style="margin-bottom: 20px; color: #666; font-size: 14px;">Tem certeza que deseja sair da conta?</p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button onclick="acaoConfirmarLogout(false)" style="padding: 8px 16px; border: none; border-radius: 6px; background: #6c757d; color: white; cursor: pointer;">Cancelar</button>
+            <button onclick="acaoConfirmarLogout(true)" style="padding: 8px 16px; border: none; border-radius: 6px; background: #dc3545; color: white; cursor: pointer;">Sim, Sair</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
