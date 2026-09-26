@@ -78,7 +78,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     const temaSalvo = localStorage.getItem('temaSolon') || 'claro';
-    const fonteSalva = localStorage.getItem('fonteSolon') || 'Arial, sans-serif';
+    const fonteSalva = localStorage.getItem('fonteSalon') || 'Arial, sans-serif';
     
     aplicarTemaVisual(temaSalvo);
     document.body.style.fontFamily = fonteSalva;
@@ -96,9 +96,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const selectMes = document.getElementById('filtroMes');
     const selectAno = document.getElementById('filtroAno');
+    const selectMesRec = document.getElementById('filtroMesReceita');
+    const selectAnoRec = document.getElementById('filtroAnoReceita');
     
     if(selectMes) selectMes.value = mesSalvo;
     if(selectAno) selectAno.value = anoSalvo;
+    if(selectMesRec) selectMesRec.value = mesSalvo;
+    if(selectAnoRec) selectAnoRec.value = anoSalvo;
 
     anoSelecionadoCriacao = anoAtual;
     anoSelecionadoCriacaoReceita = anoAtual;
@@ -1397,15 +1401,43 @@ function renderizarReceitas() {
     const dashValor = document.getElementById('dash-valor-receita');
     if(!listaHtml) return;
     listaHtml.innerHTML = '';
-    let total = 0;
+    
+    const mesFiltro = document.getElementById('filtroMesReceita')?.value || mesesOrdem[new Date().getMonth()];
+    const anoFiltro = document.getElementById('filtroAnoReceita')?.value || new Date().getFullYear().toString();
 
-    if (!dadosLocais.receitas || dadosLocais.receitas.length === 0) {
-        listaHtml.innerHTML = '<li style="color: #777; justify-content: center;">Nenhuma receita adicionada ainda.</li>';
-        dashValor.innerText = "R$ 0,00"; return;
+    let totalMes = 0;
+    let receitasFiltradas = [];
+
+    if (dadosLocais.receitas) {
+        dadosLocais.receitas.forEach((receita, index) => {
+            let tipoR = receita.tipo || 'Fixa';
+            let atendeFiltro = false;
+
+            if (tipoR === 'Fixa') {
+                atendeFiltro = true;
+            } else if (tipoR === 'FixaAte' && receita.intervaloCompleto) {
+                let inicioAbs = receita.intervaloCompleto.inicio.ano * 12 + receita.intervaloCompleto.inicio.mesIndex;
+                let fimAbs = receita.intervaloCompleto.fim.ano * 12 + receita.intervaloCompleto.fim.mesIndex;
+                let mesAtualAbs = parseInt(anoFiltro) * 12 + mesesOrdem.indexOf(mesFiltro);
+                if (mesAtualAbs >= inicioAbs && mesAtualAbs <= fimAbs) atendeFiltro = true;
+            } else if (tipoR === 'Extra' && receita.mesesPorAno) {
+                if ((receita.mesesPorAno[anoFiltro] || []).includes(mesFiltro)) atendeFiltro = true;
+            }
+
+            if (atendeFiltro) {
+                totalMes += receita.valor;
+                receitasFiltradas.push({ receita, index });
+            }
+        });
     }
 
-    dadosLocais.receitas.forEach(function(receita, index) {
-        total += receita.valor;
+    if (receitasFiltradas.length === 0) {
+        listaHtml.innerHTML = '<li style="color: #777; justify-content: center;">Nenhuma receita para este mês.</li>';
+        dashValor.innerText = "R$ 0,00";
+        return;
+    }
+
+    receitasFiltradas.forEach(({ receita, index }) => {
         let valFormat = receita.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         let tipoTexto = receita.tipo === 'FixaAte' ? 'Fixa Até' : (receita.tipo === 'Extra' ? 'Receita Extra' : 'Fixa');
         
@@ -1438,7 +1470,7 @@ function renderizarReceitas() {
             </div>`;
         listaHtml.appendChild(li);
     });
-    dashValor.innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    dashValor.innerText = totalMes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 function renderizarDespesas() {
