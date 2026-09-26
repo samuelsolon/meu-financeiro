@@ -238,11 +238,16 @@ window.alternarTipoReceitaUI = function() {
     const tipo = document.getElementById('tipoReceita').value;
     const containerSeletor = document.getElementById('containerSeletorMesReceita');
     const infoBox = document.getElementById('infoIntervaloFixaReceita');
-    if (tipo === 'FixaAte') { containerSeletor.style.display = 'block'; if(infoBox) infoBox.style.display = 'block'; }
-    else if (tipo === 'Extra') { containerSeletor.style.display = 'block'; if(infoBox) infoBox.style.display = 'none'; }
-    else {
-        containerSeletor.style.display = 'none'; if(infoBox) infoBox.style.display = 'none';
-        selecaoMesesReceitaMap = {}; selecaoMesesFixaInicio = null; selecaoMesesFixaFim = null;
+    
+    if (tipo === 'FixaAte' || tipo === 'Extra') {
+        containerSeletor.style.display = 'block';
+        if(infoBox) infoBox.style.display = (tipo === 'FixaAte') ? 'block' : 'none';
+    } else {
+        containerSeletor.style.display = 'none';
+        if(infoBox) infoBox.style.display = 'none';
+        selecaoMesesReceitaMap = {}; 
+        selecaoMesesFixaInicio = null; 
+        selecaoMesesFixaFim = null;
         document.getElementById('textoMesesReceita').innerText = "Período / Meses...";
         document.querySelectorAll('#gradeMesesReceitaCriacao .chk-rec-mes').forEach(c => c.checked = false);
     }
@@ -399,7 +404,7 @@ window.processarSelecaoMesReceita = function(mesValor, event) {
             document.getElementById('textoMesesReceita').innerText = `Início: ${mesValor}/${anoAtualSel} (Escolha o fim)`;
         }
         sincronizarCheckboxesVisuaisCriacaoReceitaFixaAte();
-    } else {
+    } else if (tipo === 'Extra') {
         if (!selecaoMesesReceitaMap[anoAtualSel]) selecaoMesesReceitaMap[anoAtualSel] = [];
         const chk = document.getElementById(`chkRec-${mesValor}`);
         if (chk.checked) {
@@ -414,16 +419,42 @@ window.processarSelecaoMesReceita = function(mesValor, event) {
 
 window.processarSelecaoMesEditReceita = function(mesValor, event) {
     editReceitaFoiModificada = true;
+    const tipo = document.getElementById('editTipoReceita').value;
     const anoAtualSel = parseInt(anoEditandoReceitaAnoSel);
-    if (!editMesesReceitaMap[anoAtualSel]) editMesesReceitaMap[anoAtualSel] = [];
-    const chk = document.getElementById(`chkEditRec-${mesValor}`);
-    if (chk.checked) {
-        if (!editMesesReceitaMap[anoAtualSel].includes(mesValor)) editMesesReceitaMap[anoAtualSel].push(mesValor);
-    } else {
-        editMesesReceitaMap[anoAtualSel] = editMesesReceitaMap[anoAtualSel].filter(m => m !== mesValor);
-        if (editMesesReceitaMap[anoAtualSel].length === 0) delete editMesesReceitaMap[anoAtualSel];
+
+    if (tipo === 'Extra') {
+        if (!editMesesReceitaMap[anoAtualSel]) editMesesReceitaMap[anoAtualSel] = [];
+        const chk = document.getElementById(`chkEditRec-${mesValor}`);
+        if (chk.checked) {
+            if (!editMesesReceitaMap[anoAtualSel].includes(mesValor)) editMesesReceitaMap[anoAtualSel].push(mesValor);
+        } else {
+            editMesesReceitaMap[anoAtualSel] = editMesesReceitaMap[anoAtualSel].filter(m => m !== mesValor);
+            if (editMesesReceitaMap[anoAtualSel].length === 0) delete editMesesReceitaMap[anoAtualSel];
+        }
+        atualizarTextoMesesEditReceita();
+        return;
     }
-    atualizarTextoMesesEditReceita();
+
+    if (!editMesesFixaInicio) {
+        editMesesFixaInicio = { ano: anoAtualSel, mesIndex: mesesOrdem.indexOf(mesValor), mesNome: mesValor };
+        editMesesFixaFim = null;
+        document.getElementById('textoMesesEditReceita').innerText = `Início: ${mesValor}/${anoAtualSel} (Escolha o fim)`;
+    } else if (!editMesesFixaFim) {
+        let candidatoFim = { ano: anoAtualSel, mesIndex: mesesOrdem.indexOf(mesValor), mesNome: mesValor };
+        let inicioAbs = editMesesFixaInicio.ano * 12 + editMesesFixaInicio.mesIndex;
+        let fimAbs = candidatoFim.ano * 12 + candidatoFim.mesIndex;
+        if (fimAbs < inicioAbs) {
+            editMesesFixaInicio = candidatoFim;
+            document.getElementById('textoMesesEditReceita').innerText = `Início: ${mesValor}/${anoAtualSel} (Escolha o fim)`;
+        } else {
+            editMesesFixaFim = candidatoFim;
+            document.getElementById('textoMesesEditReceita').innerText = `${(fimAbs - inicioAbs) + 1} meses (${editMesesFixaFixaFormatado()})`;
+        }
+    } else {
+        editMesesFixaInicio = { ano: anoAtualSel, mesIndex: mesesOrdem.indexOf(mesValor), mesNome: mesValor };
+        editMesesFixaFim = null;
+        document.getElementById('textoMesesEditReceita').innerText = `Início: ${mesValor}/${anoAtualSel} (Escolha o fim)`;
+    }
 };
 
 function selecaoMesesFixaFixaFormatado() {
@@ -486,16 +517,24 @@ function sincronizarCheckboxesVisuaisEditDespesa() {
 }
 
 function sincronizarCheckboxesVisuaisCriacaoReceita() {
+    const tipo = document.getElementById('tipoReceita').value;
     const anoAtualSel = parseInt(anoSelecionadoCriacaoReceita);
     document.querySelectorAll('#gradeMesesReceitaCriacao .chk-rec-mes').forEach(chk => {
-        chk.checked = (selecaoMesesReceitaMap[anoAtualSel] || []).includes(chk.value);
+        const mesVal = chk.value;
+        if (tipo === 'Extra') {
+            chk.checked = (selecaoMesesReceitaMap[anoAtualSel] || []).includes(mesVal);
+        }
     });
 }
 
 function sincronizarCheckboxesVisuaisEditReceita() {
+    const tipo = document.getElementById('editTipoReceita').value;
     const anoAtualSel = parseInt(anoEditandoReceitaAnoSel);
     document.querySelectorAll('#gradeMesesEditReceitaCriacao .chk-edit-rec-mes').forEach(chk => {
-        chk.checked = (editMesesReceitaMap[anoAtualSel] || []).includes(chk.value);
+        const mesVal = chk.value;
+        if (tipo === 'Extra') {
+            chk.checked = (editMesesReceitaMap[anoAtualSel] || []).includes(mesVal);
+        }
     });
 }
 
@@ -1369,7 +1408,22 @@ function renderizarReceitas() {
         total += receita.valor;
         let valFormat = receita.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         let tipoTexto = receita.tipo === 'FixaAte' ? 'Fixa Até' : (receita.tipo === 'Extra' ? 'Receita Extra' : 'Fixa');
-        let rotuloDetalhe = receita.tipo === 'FixaAte' && receita.intervaloCompleto ? `${receita.totalMesesContrato} meses` : "Recorrente";
+        
+        let rotuloDetalhe = "Fixo";
+        if (receita.tipo === 'FixaAte' && receita.intervaloCompleto) {
+            rotuloDetalhe = `${receita.intervaloCompleto.inicio.mesNome}/${receita.intervaloCompleto.inicio.ano} a ${receita.intervaloCompleto.fim.mesNome}/${receita.intervaloCompleto.fim.ano}`;
+        } else if (receita.tipo === 'Extra' && receita.mesesPorAno) {
+            let mesesAtivos = [];
+            Object.keys(receita.mesesPorAno).forEach(ano => {
+                (receita.mesesPorAno[ano] || []).forEach(m => mesesAtivos.push(`${m}/${ano}`));
+            });
+            if (mesesAtivos.length > 0) {
+                let primeiro = mesesAtivos[0];
+                rotuloDetalhe = mesesAtivos.length > 1 ? `${primeiro} (+${mesesAtivos.length - 1})` : primeiro;
+            } else {
+                rotuloDetalhe = "Receita Extra";
+            }
+        }
 
         const li = document.createElement('li');
         li.innerHTML = `
@@ -1496,7 +1550,6 @@ window.adicionarItem = async function() {
     t.value = ''; await salvarNaNuvem();
 };
 
-// Ativar login ao pressionar Enter na tela de login
 document.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
         const telaLogin = document.getElementById("tela-login");
