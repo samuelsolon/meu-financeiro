@@ -218,9 +218,20 @@
                 <div id="aba-receitas" class="aba">
                     <h1>Minhas Receitas</h1>
                     <p>Controle de todas as suas entradas de dinheiro (fixas, fixa até ou extras).</p>
+                    
+                    <!-- FILTRO DE MÊS E ANO PARA AS RECEITAS -->
+                    <div class="filtro-periodo" style="margin-bottom: 15px;">
+                        <select id="filtroMesReceita" onchange="renderizarReceitas()">
+                            <option value="Jan">Janeiro</option><option value="Fev">Fevereiro</option><option value="Mar">Março</option><option value="Abr">Abril</option><option value="Mai">Maio</option><option value="Jun">Junho</option><option value="Jul">Julho</option><option value="Ago">Agosto</option><option value="Set">Setembro</option><option value="Out">Outubro</option><option value="Nov">Novembro</option><option value="Dez">Dezembro</option>
+                        </select>
+                        <select id="filtroAnoReceita" onchange="renderizarReceitas()">
+                            <option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option><option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option><option value="2035">2035</option>
+                        </select>
+                    </div>
+
                     <div class="dash-container">
                         <div class="dash-card receita">
-                            <h4>Total de Receitas Adicionadas</h4>
+                            <h4>Total de Receitas no Mês</h4>
                             <h2 id="dash-valor-receita">R$ 0,00</h2>
                         </div>
                     </div>
