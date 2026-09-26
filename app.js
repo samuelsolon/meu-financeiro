@@ -1563,9 +1563,7 @@ document.addEventListener("keydown", (event) => {
         if (telaLogin && window.getComputedStyle(telaLogin).display !== "none") {
             event.preventDefault();
             const btnEntrar = document.querySelector("#tela-login button");
-            if (btnEntrolar && btnEntrolar.click) {
-                btnEntrolar.click();
-            } else if (btnEntrar) {
+            if (btnEntrar) {
                 btnEntrar.click();
             }
         }
