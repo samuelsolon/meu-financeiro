@@ -273,18 +273,19 @@
                         </div>
                     </div>
 
-                    <!-- FILTRO DE MÊS E ANO + BOTÃO TODOS ABAIXO DO CADASTRO -->
+                    <!-- FILTRO DE MÊS E ANO + BOTÃO DE FILTRAR E TODOS -->
                     <div class="filtro-periodo" style="margin: 15px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                        <select id="filtroMesReceita" onchange="renderizarReceitas()" style="padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                        <select id="filtroMesReceita" style="padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
                             <option value="Jan">Janeiro</option><option value="Fev">Fevereiro</option><option value="Mar">Março</option><option value="Abr">Abril</option><option value="Mai">Maio</option><option value="Jun">Junho</option><option value="Jul">Julho</option><option value="Ago">Agosto</option><option value="Set">Setembro</option><option value="Out">Outubro</option><option value="Nov">Novembro</option><option value="Dez">Dezembro</option>
                         </select>
-                        <select id="filtroAnoReceita" onchange="renderizarReceitas()" style="padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+                        <select id="filtroAnoReceita" style="padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
                             <option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option><option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option><option value="2035">2035</option>
                         </select>
+                        <button onclick="aplicarFiltroReceitas()" style="padding: 8px 14px; background: #007BFF; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Filtrar</button>
                         <button onclick="mostrarTodasReceitas()" style="padding: 8px 14px; background: #6c757d; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Todos os Lançamentos</button>
                     </div>
 
-                    <!-- LISTA DE RECEITAS (CRESCENDO NATURALMENTE PARA BAIXO) -->
+                    <!-- LISTA DE RECEITAS -->
                     <ul id="lista-receitas-html" class="lista-financas"></ul>
                 </div>
 
