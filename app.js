@@ -742,7 +742,7 @@ window.salvarDadosPessoaisConfig = async function() {
 
     if (currentUserUid) {
         try {
-            await setDoc(doc(db, "usuarios", currentUserUid), { nome: novoNome, sobrenome: sobrenome, apelido: novoApelido }, { merge: true });
+            await setDoc(doc(db, "usuarios", currentUserUid), { nome: novoNome, sobrenome: novoSobrenome, apelido: novoApelido }, { merge: true });
             let nomeExibicao = novoApelido || novoNome;
             document.getElementById('nomeUserDisplay').innerText = nomeExibicao;
             document.getElementById('frasePersonalizada').innerText = `Não gasta com besteira ${nomeExibicao}, kkk`;
@@ -1269,7 +1269,23 @@ window.atualizarAnaliseMes = function() {
 
                 let tipoItem = d.tipo || 'Fixa';
                 if (filtroExtratoAtual === 'Todos' || filtroExtratoAtual === tipoItem || (filtroExtratoAtual === 'Fixa' && tipoItem === 'FixaAte')) {
-                    let rotuloExtrato = d.tipo === 'FixaAte' && d.intervaloCompleto ? `${d.totalMesesContrato} meses` : "Recorrente";
+                    
+                    let rotuloExtrato = "Fixo";
+                    if (d.tipo === 'FixaAte' && d.intervaloCompleto) {
+                        rotuloExtrato = `${d.intervaloCompleto.inicio.mesNome}/${d.intervaloCompleto.inicio.ano} a ${d.intervaloCompleto.fim.mesNome}/${d.intervaloCompleto.fim.ano}`;
+                    } else if (d.tipo === 'Variável' && d.mesesPorAno) {
+                        let mesesAtivos = [];
+                        Object.keys(d.mesesPorAno).forEach(ano => {
+                            (d.mesesPorAno[ano] || []).forEach(m => mesesAtivos.push(`${m}/${ano}`));
+                        });
+                        if (mesesAtivos.length > 0) {
+                            let primeiro = mesesAtivos[0];
+                            rotuloExtrato = mesesAtivos.length > 1 ? `${primeiro} (+${mesesAtivos.length - 1})` : primeiro;
+                        } else {
+                            rotuloExtrato = "Variável";
+                        }
+                    }
+
                     despesasFiltradas.push({ indexOriginal, nome: d.nome, tipo: tipoItem === 'FixaAte' ? 'Fixa Até' : tipoItem, rotuloTempo: rotuloExtrato, valorParcela: valorMensalCalculado, situacao: sit, valorParcial: valParcial });
                 }
             }
