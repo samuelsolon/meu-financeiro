@@ -78,7 +78,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     const temaSalvo = localStorage.getItem('temaSolon') || 'claro';
-    const fonteSalva = localStorage.getItem('fonteSalon') || 'Arial, sans-serif';
+    const fonteSalva = localStorage.getItem('fonteSolon') || 'Arial, sans-serif';
     
     aplicarTemaVisual(temaSalvo);
     document.body.style.fontFamily = fonteSalva;
@@ -1396,6 +1396,13 @@ window.atualizarAnaliseMes = function() {
     else { badge.innerText = "SAUDÁVEL"; badge.style.backgroundColor = "#28a745"; txtDesc.innerText = "Balanço positivo"; }
 };
 
+let mostrandoTodasReceitasFlag = false;
+
+window.mostrarTodasReceitas = function() {
+    mostrandoTodasReceitasFlag = true;
+    renderizarReceitas();
+};
+
 function renderizarReceitas() {
     const listaHtml = document.getElementById('lista-receitas-html');
     const dashValor = document.getElementById('dash-valor-receita');
@@ -1405,14 +1412,22 @@ function renderizarReceitas() {
     const mesFiltro = document.getElementById('filtroMesReceita')?.value || mesesOrdem[new Date().getMonth()];
     const anoFiltro = document.getElementById('filtroAnoReceita')?.value || new Date().getFullYear().toString();
 
-    let totalMes = 0;
+    let totalPeriodo = 0;
     let receitasFiltradas = [];
 
-    if (dadosLocais.receitas) {
-        dadosLocais.receitas.forEach((receita, index) => {
-            let tipoR = receita.tipo || 'Fixa';
-            let atendeFiltro = false;
+    if (!dadosLocais.receitas || dadosLocais.receitas.length === 0) {
+        listaHtml.innerHTML = '<li style="color: #777; justify-content: center;">Nenhuma receita adicionada ainda.</li>';
+        dashValor.innerText = "R$ 0,00"; 
+        return;
+    }
 
+    dadosLocais.receitas.forEach((receita, index) => {
+        let tipoR = receita.tipo || 'Fixa';
+        let atendeFiltro = false;
+
+        if (mostrandoTodasReceitasFlag) {
+            atendeFiltro = true;
+        } else {
             if (tipoR === 'Fixa') {
                 atendeFiltro = true;
             } else if (tipoR === 'FixaAte' && receita.intervaloCompleto) {
@@ -1423,16 +1438,16 @@ function renderizarReceitas() {
             } else if (tipoR === 'Extra' && receita.mesesPorAno) {
                 if ((receita.mesesPorAno[anoFiltro] || []).includes(mesFiltro)) atendeFiltro = true;
             }
+        }
 
-            if (atendeFiltro) {
-                totalMes += receita.valor;
-                receitasFiltradas.push({ receita, index });
-            }
-        });
-    }
+        if (atendeFiltro) {
+            totalPeriodo += receita.valor;
+            receitasFiltradas.push({ receita, index });
+        }
+    });
 
     if (receitasFiltradas.length === 0) {
-        listaHtml.innerHTML = '<li style="color: #777; justify-content: center;">Nenhuma receita para este mês.</li>';
+        listaHtml.innerHTML = '<li style="color: #777; justify-content: center;">Nenhuma receita encontrada para este período.</li>';
         dashValor.innerText = "R$ 0,00";
         return;
     }
@@ -1470,7 +1485,9 @@ function renderizarReceitas() {
             </div>`;
         listaHtml.appendChild(li);
     });
-    dashValor.innerText = totalMes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    dashValor.innerText = totalPeriodo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    mostrandoTodasReceitasFlag = false; // Reseta a flag após renderizar
 }
 
 function renderizarDespesas() {
