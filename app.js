@@ -160,6 +160,7 @@ function aplicarTemaVisual(tema) {
 window.salvarFiltroPeriodo = function() {
     localStorage.setItem('mesSelecionadoSolon', document.getElementById('filtroMes').value);
     localStorage.setItem('anoSelecionadoSolon', document.getElementById('filtroAno').value);
+    atualizarAnaliseMes();
 };
 
 window.toggleListaAnos = function(event, idContainer) {
@@ -758,7 +759,7 @@ window.salvarConfiguracoes = async function() {
 
     localStorage.setItem('temaSolon', selTema);
     localStorage.setItem('fonteSolon', selFonte);
-    aplicarTemaVisual(selTema);
+    aplicarTemaVisual(temaSalvo);
     document.body.style.fontFamily = selFonte;
 
     if (currentUserUid) {
